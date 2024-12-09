@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Put your AoC cookie, choose the a template from the "templates" folder and put them inside ".env"
-source .env
+source ./.env
 
 function get_puzzle_input() {
     day="${1:-$(date +'%-d')}"
