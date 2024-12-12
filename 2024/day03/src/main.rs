@@ -30,27 +30,28 @@ fn p1(input: &str) -> u64 {
 fn p2(input: &str) -> u64 {
     let re = Regex::new(r"do\(\)|don\'t\(\)|mul\((\d{1,3}),(\d{1,3})\)").unwrap();
 
+    let mut sum = 0;
     let mut enabled = true;
 
-    re.captures_iter(input)
-        .filter_map(|cap| match cap.get(0).unwrap().as_str() {
+    for capture in re.captures_iter(input) {
+        let instruction = capture.get(0).unwrap().as_str();
+
+        match instruction {
             "do()" => {
                 enabled = true;
-                None
             }
             "don't()" => {
                 enabled = false;
-                None
             }
-            _ => {
+            _mul => {
                 if enabled {
-                    Some(parse_mul_capture(cap))
-                } else {
-                    None
+                    sum += parse_mul_capture(capture)
                 }
             }
-        })
-        .sum::<u64>() as u64
+        }
+    }
+
+    sum
 }
 
 fn main() {
