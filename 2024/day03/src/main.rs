@@ -2,21 +2,21 @@ use regex::Regex;
 use std::fs;
 
 fn parse_mul_capture(capture: regex::Captures<'_>) -> u64 {
-    let [x, y]: [u32; 2] = capture
+    let [x, y]: [u64; 2] = capture
         .iter()
         .skip(1)
         .map(|group| {
             group
                 .expect("expected a match")
                 .as_str()
-                .parse::<u32>()
+                .parse::<u64>()
                 .unwrap()
         })
-        .collect::<Vec<u32>>()
+        .collect::<Vec<u64>>()
         .try_into()
         .unwrap();
 
-    (x * y) as u64
+    x * y
 }
 
 fn p1(input: &str) -> u64 {
