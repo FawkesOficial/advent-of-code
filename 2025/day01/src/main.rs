@@ -25,8 +25,34 @@ fn part1(input: &str) -> Option<u64> {
     Some(zero_count)
 }
 
-fn part2(_input: &str) -> Option<u64> {
-    None
+fn part2(input: &str) -> Option<u64> {
+    let (_final_pos, zero_count) =
+        input
+            .lines()
+            .fold((DIAL_START, 0), |(current_pos, zero_count), line| {
+                let (turn, dist) = line.split_at(1);
+                let dist: i64 = dist.parse().unwrap();
+
+                let dir = match turn {
+                    "L" => -1,
+                    "R" => 1,
+                    _ => unreachable!(),
+                };
+
+                let mut new_pos = current_pos;
+                let mut remaining = dist;
+                let mut zero_crosses = 0;
+                while remaining > 0 {
+                    new_pos = (new_pos + dir).rem_euclid(DIAL_SIZE);
+                    zero_crosses += (new_pos == 0) as u64;
+
+                    remaining -= 1;
+                }
+
+                (new_pos, zero_count + zero_crosses)
+            });
+
+    Some(zero_count)
 }
 
 fn main() {
@@ -64,6 +90,6 @@ L82
 
     #[test]
     fn test_part2_example() {
-        assert_eq!(part2(EXAMPLE.trim()), None);
+        assert_eq!(part2(EXAMPLE.trim()), Some(6));
     }
 }
