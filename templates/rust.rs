@@ -7,7 +7,7 @@ fn part2(_input: &str) -> Option<u64> {
 }
 
 fn main() {
-    let input = include_str!("../../../input.txt");
+    let input = include_str!("../../../input.txt").trim();
 
     if let Some(p1_result) = part1(&input) {
         println!("p1: {}", p1_result);
