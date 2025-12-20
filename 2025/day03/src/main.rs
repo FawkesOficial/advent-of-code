@@ -1,16 +1,16 @@
 fn part1(input: &str) -> Option<u64> {
     let result = input
         .lines()
-        .map(|bank_str| {
-            let bank = bank_str
+        .map(|line| {
+            let bank = line
                 .chars()
                 .map(|battery| battery.to_digit(10).expect("battery should be a digit") as u64);
 
-            let left = bank.clone().take(bank_str.len() - 1); // take all but the last digit
+            let left = bank.clone().take(line.len() - 1); // take all but the last digit
 
-            // note: we have to use manual fold here since in rust's .max() implementation,
-            //       "if several elements are equally maximum, the last element is returned",
-            //       and we're actually interested in the very first occurence of the max digit
+            // [note]: we have to use manual fold here since in rust's .max() implementation,
+            //         "if several elements are equally maximum, the last element is returned",
+            //         and we're actually interested in the very first occurence of the max digit
             let (max_idx, max_first_digit) = left
                 .enumerate()
                 .fold(None, |best, (idx, battery)| match best {
@@ -35,8 +35,63 @@ fn part1(input: &str) -> Option<u64> {
     Some(result)
 }
 
-fn part2(_input: &str) -> Option<u64> {
-    None
+fn part2(input: &str) -> Option<u64> {
+    let result = input
+        .lines()
+        .map(|line| {
+            let bank = line
+                .chars()
+                .map(|battery| battery.to_digit(10).expect("battery should be a digit") as u64);
+
+            let mut max_voltage_digits: Vec<u64> = Vec::new();
+
+            let mut max_idx: i64 = -1;
+            for i in 0..12 {
+                max_idx += 1;
+                let left = bank
+                    .clone()
+                    .take(line.len() - (11 - i))
+                    .skip(max_idx as usize);
+
+                // [note]: for debug purposes
+                // let left_str = left
+                //     .clone()
+                //     .into_iter()
+                //     .map(|battery| battery.to_string())
+                //     .collect::<String>();
+                // println!("exploring: {}", left_str);
+
+                // [note]: we have to use manual fold here since in rust's .max() implementation,
+                //         "if several elements are equally maximum, the last element is returned",
+                //         and we're actually interested in the very first occurence of the max digit
+                let (new_max_idx, new_digit) = left
+                    .enumerate()
+                    .fold(None, |best, (idx, battery)| match best {
+                        None => Some((idx, battery)),
+                        Some((_best_idx, best_battery)) if battery > best_battery => {
+                            Some((idx, battery))
+                        }
+                        Some(b) => Some(b),
+                    })
+                    .expect("expected at least one battery");
+
+                max_idx = max_idx + new_max_idx as i64;
+                max_voltage_digits.push(new_digit);
+            }
+
+            assert_eq!(max_voltage_digits.len(), 12); // sanity check
+
+            let max_voltage = max_voltage_digits
+                .iter()
+                .enumerate()
+                .map(|(i, digit)| digit * 10_u64.pow(12 - (i as u32 + 1)))
+                .sum::<u64>();
+
+            max_voltage
+        })
+        .sum();
+
+    Some(result)
 }
 
 fn main() {
@@ -68,7 +123,7 @@ mod tests {
 
     #[test]
     fn test_part2_example() {
-        assert_eq!(part2(EXAMPLE.trim()), None);
+        assert_eq!(part2(EXAMPLE.trim()), Some(3121910778619));
     }
 
     #[test]
