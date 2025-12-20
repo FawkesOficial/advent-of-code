@@ -1,3 +1,13 @@
+use std::ops::RangeInclusive;
+
+fn parse_range(range: &str) -> RangeInclusive<u64> {
+    let (first_id, last_id) = range.split_once("-").expect("invalid range");
+    let first_id: u64 = first_id.parse().expect("first id is not a number");
+    let last_id: u64 = last_id.parse().expect("last id is not a number");
+
+    first_id..=last_id
+}
+
 fn is_invalid(id: &str) -> bool {
     if id.len() % 2 != 0 {
         return false;
@@ -8,15 +18,34 @@ fn is_invalid(id: &str) -> bool {
     first == second
 }
 
+fn split_n_parts(s: &str, n: usize) -> impl Iterator<Item = &str> {
+    (0..n).scan(0, move |start, i| {
+        let end = *start + (s.len() + i) / n;
+        let split = &s[*start..end];
+        *start = end;
+
+        Some(split)
+    })
+}
+
+fn is_invalid_part2(id: &str) -> bool {
+    (2..=id.len()).any(|n| {
+        if id.len() % n != 0 {
+            return false;
+        }
+
+        let mut splits = split_n_parts(id, n);
+        let first = splits.next().expect("has to have at least 1 split");
+
+        splits.all(|split| split == first)
+    })
+}
+
 fn part1(input: &str) -> Option<u64> {
     let result = input
         .split(",")
         .map(|range| {
-            let (first_id, last_id) = range.split_once("-").expect("invalid range");
-            let first_id: u64 = first_id.parse().expect("first id is not a number");
-            let last_id: u64 = last_id.parse().expect("last id is not a number");
-
-            (first_id..=last_id)
+            parse_range(range)
                 .filter(|id| is_invalid(&id.to_string()))
                 .sum::<u64>()
         })
@@ -25,8 +54,17 @@ fn part1(input: &str) -> Option<u64> {
     Some(result)
 }
 
-fn part2(_input: &str) -> Option<u64> {
-    None
+fn part2(input: &str) -> Option<u64> {
+    let result = input
+        .split(",")
+        .map(|range| {
+            parse_range(range)
+                .filter(|id| is_invalid_part2(&id.to_string()))
+                .sum::<u64>()
+        })
+        .sum();
+
+    Some(result)
 }
 
 fn main() {
@@ -55,6 +93,6 @@ mod tests {
 
     #[test]
     fn test_part2_example() {
-        assert_eq!(part2(EXAMPLE.trim()), None);
+        assert_eq!(part2(EXAMPLE.trim()), Some(4174379265));
     }
 }
