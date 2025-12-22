@@ -1,4 +1,5 @@
 const PAPER_ROLL_CHAR: char = '@';
+const EMPTY_SPACE_CHAR: char = '.';
 
 fn is_paper_roll(chr: &char) -> bool {
     *chr == PAPER_ROLL_CHAR
@@ -39,8 +40,39 @@ fn part1(input: &str) -> Option<u64> {
     Some(accessed_paper_rolls)
 }
 
-fn part2(_input: &str) -> Option<u64> {
-    None
+fn part2(input: &str) -> Option<u64> {
+    let mut grid: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
+
+    let mut total_removed = 0;
+    loop {
+        let current_grid = grid.clone();
+
+        let accessed_paper_rolls = current_grid
+            .iter()
+            .enumerate()
+            .flat_map(|(r, line)| line.iter().enumerate().map(move |(c, chr)| (r, c, chr)))
+            .filter(|&(r, c, chr)| {
+                is_paper_roll(chr)
+                    && surroundings(r, c, &current_grid)
+                        .filter(is_paper_roll)
+                        .count()
+                        < 4
+            });
+
+        for (r, c, _) in accessed_paper_rolls.clone() {
+            grid[r][c] = EMPTY_SPACE_CHAR;
+        }
+
+        let accessed_paper_rolls_count = accessed_paper_rolls.count() as u64;
+
+        total_removed += accessed_paper_rolls_count;
+
+        if accessed_paper_rolls_count == 0 {
+            break;
+        }
+    }
+
+    Some(total_removed)
 }
 
 fn main() {
