@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::{collections::HashSet, ops::RangeInclusive};
 
 fn parse_range(range: &str) -> RangeInclusive<u64> {
@@ -28,6 +29,32 @@ fn is_fresh(ingredient_id: u64, fresh_ranges: &[RangeInclusive<u64>]) -> bool {
         .any(|range| range.contains(&ingredient_id))
 }
 
+fn ranges_union(ranges: &[RangeInclusive<u64>]) -> Vec<RangeInclusive<u64>> {
+    if ranges.is_empty() {
+        return ranges.to_vec();
+    }
+
+    let mut ranges = ranges.to_vec().clone();
+    ranges.sort_by_key(|range| *range.start());
+
+    let mut result: Vec<RangeInclusive<u64>> = Vec::new();
+    for range in ranges {
+        match result.last_mut() {
+            Some(last) => {
+                // overlapping or adjacent (inclusive)
+                if *range.start() <= *last.end() + 1 {
+                    *last = *last.start()..=max(*last.end(), *range.end());
+                } else {
+                    result.push(range);
+                }
+            }
+            None => result.push(range),
+        }
+    }
+
+    result
+}
+
 fn part1(input: &str) -> Option<u64> {
     let (fresh_ranges, available_ingredients) = parse_database(input);
 
@@ -39,8 +66,15 @@ fn part1(input: &str) -> Option<u64> {
     Some(fresh_count)
 }
 
-fn part2(_input: &str) -> Option<u64> {
-    None
+fn part2(input: &str) -> Option<u64> {
+    let (fresh_ranges, _) = parse_database(input);
+
+    let fresh_count: u64 = ranges_union(&fresh_ranges)
+        .into_iter()
+        .map(|range| range.count() as u64)
+        .sum();
+
+    Some(fresh_count)
 }
 
 fn main() {
@@ -79,6 +113,6 @@ mod tests {
 
     #[test]
     fn test_part2_example() {
-        assert_eq!(part2(EXAMPLE.trim()), None);
+        assert_eq!(part2(EXAMPLE.trim()), Some(14));
     }
 }
